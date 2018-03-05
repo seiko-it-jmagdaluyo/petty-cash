@@ -2,12 +2,12 @@ require('./../../app');
 require('./../../jquery.dataTables.min');
 require('./../../dataTables.bootstrap.min');
 require('./../../../vendor/iziModal/js/iziModal.min');
-require('./../../../vendor/iziToast/dist/js/iziToast.min');
+require('./../../../vendor/iziToast/dist/js/iziToast');
 require('./../../formvalidation');
 
 require('./../../common');
 
-;(function(global, $){
+;(function(global, $, Pace, iziToast){
     const User = function(id, name, email, password){
         return new User.init();
     }
@@ -22,6 +22,7 @@ require('./../../common');
 
     User.prototype = {
         initialize: function(){
+            let self = this;
             $('document').ready(function(){
                 let userAction = "Add New User";
                 let userActionSubtitle = "Add New User subtitle";
@@ -42,6 +43,7 @@ require('./../../common');
                 $('#frm-user-master').formValidation({
                     framework: 'bootstrap',
                     icon: icons,
+                    resetFormData:true,
                     fields: {
                         name: {
                             validators: {
@@ -96,37 +98,83 @@ require('./../../common');
                 .on('success.form.fv', function(e) {
                     // Prevent form submission
                     e.preventDefault();
-        
+
                     let $form       = $(e.target),
+                        formId   = $('#frm-user-master')
                         fv          = $form.data('formValidation'),
                         actionUrl   = $form.attr('action'),
-                        type        = "POST",
-                        data        = $form.serialize();
-                    this.submitData(actionUrl, type, data);
+                        type        = "POST";
+                        data        = self.jsonify($form.serializeArray());
+                        self.submitData(actionUrl, type, data, formId);
                     
                 });
-                let formValidation = $("#frm-user-master").data('formValidation');
-                console.log('formValidation: '+formValidation);
             });
         },
-        submitData: function(actionUrl, type, data){
-            $.ajax({
-                url: actionUrl,
-                type: type,
-                data: data,
-                beforeSend:function(){
-
-                },
-                success: function(result) {
-                    
+        jsonify:function(formData){
+            var returnArray = {};
+            for (var i = 0; i < formData.length; i++){
+                returnArray[formData[i]['name']] = formData[i]['value'];   
+            }
+            return returnArray;
+        },
+        submitData: function(actionUrl, type, data, formId){
+            let self = this;
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
+            Pace.track(function(){
+                $.ajax({
+                    dataType: 'json',
+                    url: actionUrl,
+                    type: type,
+                    data: data,
+                    success: function(response) {
+                        if(response.success){
+                            self.resetForm(formId);
+                            iziToast.success({
+                                title: 'Success!',
+                                message: 'User has been successfully saved!',
+                                position: 'topRight'
+                            });
+                        }else{
+                            let error = response.error;
+                            let arr_errmsg = [];
+                            let errors = "";
+                            for (let element in error) {
+                                errors += `<br/><label><strong>${element.charAt(0).toUpperCase() + element.slice(1)}</strong></label>
+                                            <ul>`;
+                                if( error.hasOwnProperty(element) ) {
+                                    arr_errmsg = error[element];
+                                    for(let msg in arr_errmsg){
+                                        errors += `<li>${arr_errmsg[msg]}</li>`;
+                                    }
+                                } 
+                                errors += `</ul>`;
+                                } 
+                            iziToast.error({
+                                title: 'Error!',
+                                message: `<div class='float-right'> ${errors} </div>`,
+                                position: 'topRight',
+                            });
+                        }
+                        
+                    }
+                });
+            });
+        },
+        resetForm: function(formId) {
+            formId.find('input:text, input:password, input:file, select, textarea').val('');
+            formId.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
+
+            $(formId).data('formValidation').resetForm();
         }
     }
     User.init.prototype = User.prototype;
 
     global.User = global.$U = User;
-})(window, $);
+})(window, $, Pace, iziToast);
 
 $("document").ready(function(){
     $U();

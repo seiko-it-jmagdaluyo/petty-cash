@@ -21312,7 +21312,7 @@ html.iziModal-isOverflow body {
   height: 100%;
   position: absolute;
   left: 0;
-  top: 50%;
+  top: .8em;
   display: table;
   font-size: 23px;
   line-height: 24px;

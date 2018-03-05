@@ -11,7 +11,7 @@
 	} else {
 		root.iziToast = factory(root);
 	}
-})(typeof global !== 'undefined' ? global : window || this.window || this.global, function (root) {
+	})(typeof global !== 'undefined' ? global : window || this.window || this.global, function (root) {
 
 	'use strict';
 
@@ -1184,6 +1184,6 @@
 		that.toast = $DOM.toast;		
 	};
 	
-
+	window.iziToast = $iziToast;
 	return $iziToast;
 });

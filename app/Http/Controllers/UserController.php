@@ -36,9 +36,9 @@ class UserController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    protected function validator(array $data)
+    protected function validator($request)
     {
-        return Validator::make($data, [
+        return Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
@@ -58,9 +58,13 @@ class UserController extends Controller
         return response()->json($users);
     }
 
-    public function create()
+    public function create($data)
     {
-        //
+        return User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']),
+        ]);
     }
 
     /**
@@ -71,7 +75,14 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // dd($request);
+        $validator = $this->validator($request);
+        if ($validator->fails()) {
+            return response()->json(['success'=>false, 'error'=>$validator->errors()]);
+        }else{
+            $user = $this->create($request->all());
+            return response()->json(['success'=>true, 'data'=>$user]);
+        }
     }
 
     /**

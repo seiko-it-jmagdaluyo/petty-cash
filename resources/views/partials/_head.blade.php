@@ -6,7 +6,7 @@
     <title>{{ config('app.name') }} | @yield("title")</title>
 
     <script src="/js/pace.min.js"></script>
-    <link rel="stylesheet" href="/css/pace-theme-flash.css"/>
+    <link rel="stylesheet" href="/css/pace/themes/blue/pace-theme-mac-osx.css"/>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 <!--[if lt IE 9]>
